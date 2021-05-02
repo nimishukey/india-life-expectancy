@@ -1,0 +1,113 @@
+#World Life Expectancy
+
+WLE <- read.csv(file.choose())
+
+head(WLE,10)
+
+hist(WLE$Bothsexeslifeexpectancy, xlab = "Both Sexes Life Expectancy", ylab = "Countries",main = "World Life Expectancy")
+#Frequency range upto 50
+abline(h=0)
+class(WLE)
+
+India <- WLE[125,]
+# Select India by its name
+India
+
+
+#India Life Expectancy
+Ind_Life_Exp <- read.csv(file.choose())
+Ind_Life_Exp
+
+Literacy <- read.csv(file.choose())
+Literacy
+
+Ind_Life_Exp_1 <- cbind(Ind_Life_Exp,Literacy$Literacy_Rate)
+Ind_Life_Exp_1
+colnames(Ind_Life_Exp_1)[7]<- "Literacy_Rate"
+
+Unemployment <- read.csv(file.choose())
+Ind_Life_Exp_2 <- cbind(Ind_Life_Exp_1,Unemployment$Rural.Urban_Person)
+colnames(Ind_Life_Exp_2)[8]<- "Avg_Unemployment"
+
+Undernutrition <- read.csv(file.choose())
+Ind_Life_Exp_3 <- cbind(Ind_Life_Exp_2,Undernutrition$Undernutrition)
+colnames(Ind_Life_Exp_3)[9]<- "Undernutrition"
+
+Tobacco_Alcohol <- read.csv(file.choose())
+Ind_Life_Exp_4 <- cbind(Ind_Life_Exp_3,Tobacco_Alcohol$Avg_tobacco_alcohol...)
+colnames(Ind_Life_Exp_4)[10]<- "Avg_Tobacco_Alcoho(%)"
+
+Pollution <- read.csv(file.choose())
+Ind_Life_Exp_5 <- cbind(Ind_Life_Exp_4,Pollution$Pollution_SO2,Pollution$Pollution_NO2,Pollution$Pollution_PM10)
+colnames(Ind_Life_Exp_5)[11:13]<- c("Pollution_SO2","Pollution_NO2","Pollution_PM10")
+
+India_Life_Expectancy <- Ind_Life_Exp_5
+India_Life_Expectancy
+
+state_names <- c("AP", "AS","BR","CG","DL","GJ","HR","HP","JK","JH","KA","KL","MP","MH","OD","PB","RJ","TN","UP","UK","WB")
+
+avg_life <- barplot(India_Life_Expectancy$Avg_Life_Expectancy, las=1, cex.names=.8, names.arg = state_names,  main = "India Average Life Expectancy", xlab = "States", ylab = "Age")
+abline(h=0)
+
+
+#avg_life <- plot_ly(x = state_names, y = India_Life_Expectancy$Avg_Life_Expectancy)
+
+
+library(plotly)
+
+avg_life1 <- India_Life_Expectancy$Avg_Life_Expectancy
+poll_data <- India_Life_Expectancy$Pollution_SO2
+data <- data.frame(state_names,avg_life1, poll_data)
+
+# CO2 and SO2 Stacked Bar graph
+Pollution_graph <- plot_ly(data, x = ~state_names, y = ~poll_data, name = 'SO2', type = 'bar') %>%
+  add_trace(y = ~India_Life_Expectancy$Pollution_NO2, name = 'CO2') %>%
+  layout(title = 'Pollution - Annual average concentration of CO2 & SO2 (µg/m3)',yaxis = list(title = 'Frequency'), xaxis = list(title = 'States'), barmode = 'stack')
+class(Pollution_graph)
+
+
+# Group bar graph of India's Life Expectancy vs Pollution in likewise state
+Avg_Pol <- India_Life_Expectancy$Pollution_SO2+India_Life_Expectancy$Pollution_NO2
+dt <- data.frame(state_names,avg_life1,Avg_Pol)
+Pollution_graph1 <- plot_ly(dt, x = ~state_names, y = ~avg_life1, name = "Average Life", type = "bar") %>%
+  add_trace(y = ~Avg_Pol, name = "Polution") %>%
+  layout(title = 'Life Expectancy vs Pollution data',yaxis = list(title = 'Frequency'), xaxis = list(title="States"), barmode = 'group' )
+
+Pollution_graph1
+
+
+#Group bar graph of India's Life Expectancy vs Literacy Rate
+data1 <-data.frame(state_names, avg_life1,India_Life_Expectancy$Literacy_Rate)
+
+Literacy_graph <- plot_ly(data1, x= ~state_names, y = ~avg_life1, type = 'bar', name = 'Average life') %>%
+  add_trace(y = ~India_Life_Expectancy$Literacy_Rate, name = "Literacy") %>%
+  layout(title = 'Life Expectancy vs Literacy Rate',colorway = c('#cd7eaf', '#3d3b72'),yaxis = list(title = 'Frequency'), xaxis = list(title = 'States'), barmode = 'group')  
+
+Literacy_graph
+
+#Group bar graph of India's Life Expectancy, Literacy,  Unemployment, Undernutrition, and Health_Behaviour
+Life_Expectancy_graph <- plot_ly(data1, x= ~state_names, y = ~avg_life1, type = 'bar', name = 'Average life') %>%
+  add_trace(y = ~Avg_Pol, name = 'Pollution Data (%)') %>%
+  add_trace(y = ~India_Life_Expectancy$Literacy_Rate, name = "Literacy") %>%
+  add_trace(y = ~India_Life_Expectancy$Avg_Unemployment, name = "Unemployment") %>%
+  add_trace(y = ~India_Life_Expectancy$Undernutrition, name = "Undernutrition") %>%
+  add_trace(y = ~India_Life_Expectancy$`Avg_Tobacco_Alcoho(%)`, name = "Health_Behaviour") %>%
+  layout(title = 'Comparative study of Life Expectancy', yaxis = list(title = 'Frequency'), xaxis = list(title = 'States'), barmode = 'group')  
+
+Life_Expectancy_graph
+
+# Scatter Matrix of India's Life Expectancy
+Avg_tobbaco <- India_Life_Expectancy$`Avg_Tobacco_Alcoho(%)`
+Ind_Life_Exp_Scatter_Matrix <- pairs(~Avg_Life_Expectancy+Literacy_Rate+Avg_Unemployment+poll_data+Undernutrition+Avg_tobbaco, data = India_Life_Expectancy)
+Ind_Life_Exp_Scatter_Matrix
+
+
+#Line Chart of India's Life Expectancy and Nutrition
+plot(avg_life1, type = "b", xaxt='n',ylim = c(0,100), lwd =1.5, col='red', xlab = "States", main = 'Life Expectancy and Nutrition')
+axis(1,at=1:length(state_names),labels = state_names)
+lines(India_Life_Expectancy$Undernutrition, type = "b", col = 'black')
+
+legend("topright",legend = c("Life Expectancy","Undernutrition"),col = c('red','black'), text.col = c('red','black'),
+        cex = 0.8, inset = 0.01,lwd = 2,pch = 21,ncol = 2,bty = 'n')
+
+  
